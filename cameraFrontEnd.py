@@ -30,8 +30,10 @@ if img_file:
         st.image(resized_img, caption="Processed Image (48x48)", width=150)
         st.success("Face detected and processed!")
 
-        # 4. Send to Classifier (Placeholder for your ML function)
-        # prediction = my_classifier.predict(resized_img)
-        # st.metric("Estimated Stress Level", f"{prediction}%")
+        if st.button("Run Bio-Scan"):
+            with st.spinner("Analyzing physiological markers..."):
+                # 5. Send image to your teammate's model
+                # ai_prediction = teammate_model.predict(resized_img)
+                ai_prediction = 0.65  # Dummy value for now
     else:
         st.error("No face detected. Please try again in better lighting!")
