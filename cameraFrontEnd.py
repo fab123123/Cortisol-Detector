@@ -2,6 +2,51 @@ import streamlit as st
 import cv2
 import numpy as np
 #from PIL import Image
+import requests
+from datetime import datetime
+
+def get_contextual_data(city="Long Beach"):
+    # Get Time info
+    now = datetime.now()
+    hour = now.hour  # 0-23
+
+    # Replace 'YOUR_API_KEY' with a real key or hardcode for the demo
+    API_KEY = "your_free_api_key"
+    # API_KEY = "e4cd84d41d01e0d10a7182f4d883d941" Omar's API Key
+    url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+
+    try:
+        response = requests.get(url).json()
+        temp = response['main']['temp']
+        description = response['weather'][0]['main']  # e.g., 'Rain', 'Clouds'
+    except:
+        temp, description = 20, "Clear"  # Fallback defaults
+
+    return hour, temp, description
+
+
+def calculate_final_score(image_classification_prob, hour, temp, weather_desc):
+    # Start with the AI's confidence (0.0 to 1.0)
+    score = image_classification_prob
+
+    # Logic: If it's 8 AM, a 'high' reading is actually normal (reduce score)
+    if 6 <= hour <= 9:
+        score -= 0.15
+
+        # Logic: If it's midnight and the AI sees stress, it's more concerning
+    if hour > 22 or hour < 4:
+        score += 0.10
+
+    # Logic: Environmental stressors
+    if temp > 35 or weather_desc in ["Thunderstorm", "Rain"]:
+        score += 0.05
+
+    return clamp(score, 0, 1)  # Keep it between 0 and 1
+
+
+def clamp(n, minn, maxn):
+    return max(min(maxn, n), minn)
+
 # Uses streamlit to allow web-application services to be quick and easy
 st.title("🧠 MindCheck: Cortisol Detector")
 st.write("Position your face in the center of the frame for the most accurate reading.")
@@ -35,5 +80,17 @@ if img_file:
                 # 5. Send image to your teammate's model
                 # ai_prediction = teammate_model.predict(resized_img)
                 ai_prediction = 0.65  # Dummy value for now
+                # 6. Take weather and time
+                h, t, desc = get_contextual_data()
+
+                # 7 & 8. Calculate Final Score
+                final_val = calculate_final_score(ai_prediction, h, t, desc)
+
+                # 9. Return information
+                if final_val > 0.7:
+                    st.warning(f"High Cortisol Detected ({int(final_val * 100)}%)")
+                    st.info("Tip: Try a 2-minute box breathing exercise.")
+                else:
+                    st.success(f"Normal Levels Detected ({int(final_val * 100)}%)")
     else:
         st.error("No face detected. Please try again in better lighting!")
