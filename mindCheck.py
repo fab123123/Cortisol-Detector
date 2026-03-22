@@ -62,12 +62,13 @@ MUSIC = {
     "high":   "https://www.youtube.com/embed/xZfV8SP0Pto?autoplay=1",
     "medium": "https://www.youtube.com/embed/CLgkjTVyqHo?autoplay=1",
     "low":    "https://www.youtube.com/embed/NOd291dK1Do?autoplay=1",
+    "photo":  "https://www.youtube.com/embed/eCIkubIERIY?autoplay=1"
 }
 
 # ---------------------------------------------------------------------------
 # Gauge
 # ---------------------------------------------------------------------------
-def render_gauge(score_pct: int):
+def render_gauge(score_pct: int): # Uses a render gauge to demonstrate cortisol levels
     arc_len = 346
     offset = arc_len * (1 - score_pct / 100)
     angle = -90 + (score_pct / 100 * 180)
@@ -230,6 +231,10 @@ else:
         img_file = st.camera_input("Take a health snapshot")
 
         if img_file:
+            components.html(f"""
+                                            <iframe width="300" height="90" src="{MUSIC['photo']}"
+                                            frameborder="0" allow="autoplay; encrypted-media"></iframe>
+                                        """, height=90)
             bytes_data = img_file.getvalue()
             cv2_img = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
 
