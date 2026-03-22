@@ -72,6 +72,6 @@ MIT License
 
 ---
 
-## 👤 Author
+## Authors
 
 Ryan Vo - CS Student | Backend, Machine Learning Enthusiast
