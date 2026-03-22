@@ -21,7 +21,7 @@ This project implements an interface that prompts a camera in order to take a pi
 ## Installation
 
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 ---
