@@ -12,11 +12,6 @@ X, y = train_data["images"], train_data["labels"]  # X: [N, 1, 48, 48]
 # ---- Convert labels for regression ----
 y = y.float().unsqueeze(1)  # shape: [N, 1]
 
-# Optional: normalize targets (recommended)
-y_mean = y.mean()
-y_std = y.std()
-y = (y - y_mean) / y_std
-
 # Split into train / validation (80/20)
 num_samples = X.shape[0]
 split = int(0.8 * num_samples)

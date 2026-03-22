@@ -24,30 +24,3 @@ class CNN48x48(nn.Module):
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
         return x
-
-class RegCNN48x48(nn.Module):
-    def __init__(self):
-        super().__init__()
-
-        self.conv = nn.Sequential(
-            nn.Conv2d(3, 32, 3, padding=1),  # 1 channel!
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-
-            nn.Conv2d(32, 64, 3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-        )
-
-        self.fc = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(64 * 12 * 12, 128),
-            nn.ReLU(),
-            nn.Linear(128, 1),  # regression output
-            nn.Sigmoid()        # constrain 0–1
-        )
-
-    def forward(self, x):
-        x = self.conv(x)
-        x = self.fc(x)
-        return x

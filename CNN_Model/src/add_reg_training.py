@@ -4,6 +4,7 @@ import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
 
+# Connect to GPU if able
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Instantiate the same model architecture
@@ -11,7 +12,7 @@ model = CNN48x48(num_classes=1).to(device)
 # Load saved state dict
 model.load_state_dict(torch.load("../saved_models/cnn48x48_regression.pth", map_location=device))
 
-
+# Load the dataset
 train_data = torch.load("../saved_tensors/train_dataset2.pt")
 test_data = torch.load("../saved_tensors/test_dataset2.pt")
 
