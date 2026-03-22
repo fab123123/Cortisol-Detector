@@ -3,7 +3,11 @@ import streamlit.components.v1 as components
 import cv2
 import numpy as np
 import requests
+import asyncio
+from uagents.query import query
+from config import BOB_ADDRESS  # Ensure this is defined in your config.py
 from CNN_Model.src.FaceCortisol import FaceCortisol
+from models import SharedAgentState
 from datetime import datetime
 import random
 import csv
@@ -17,6 +21,23 @@ MUSIC = {
     "low":    "https://www.youtube.com/embed/NOd291dK1Do?autoplay=1",
 }
 
+BOB_ADDRESS = "agent1qtvu49f8qzulxa2hp6pcxszqyevhff5h0me2tzkkshtkjy3kusq4qpanlep"
+
+# Helper for Async Communication
+async def get_agent_response(state_to_send):
+    try:
+        # Use a timeout to prevent the UI from freezing forever
+        response = await query(
+            destination=BOB_ADDRESS,
+            message=state_to_send,
+            timeout=15.0
+        )
+        # uAgents returns a list of envelopes; we decode the first one
+        if response:
+            return response.decode_payload()
+        return None
+    except Exception as e:
+        return f"Error: {e}"
 
 # ---------------------------------------------------------------------------
 # Gauge
@@ -212,6 +233,29 @@ else:
                 # Gauge
                 render_gauge(score_pct)
 
+                state_to_send = SharedAgentState(
+                    chat_session_id=f"session_{random.randint(1000, 9999)}",
+                    query=f"Analyze stress for level: {score_pct}%",
+                    brightness=score_pct,  # Decimal value
+                    user_sender_address="frontend_user",
+                    result=""
+                )
+
+                # 3. Call the Agent
+                with st.chat_message("assistant"):
+                    st.write("Consulting Agent Bob for clinical analysis...")
+                    try:
+                        # This is the magic line to run async in Streamlit
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        bob_response = loop.run_until_complete(get_agent_response(state_to_send))
+
+                        if isinstance(bob_response, SharedAgentState):
+                            st.markdown(f"**Bob's Analysis:** {bob_response.result}")
+                        else:
+                            st.warning("Agent Bob is offline. Using local heuristics.")
+                    except Exception as e:
+                        st.error(f"Communication failed: {e}")
                 # Result + music
                 # Read CSV into a list
                 with open("advice.csv", newline='', encoding='utf-8') as f:
@@ -242,5 +286,6 @@ else:
                         <iframe width="640" height="360" src="{MUSIC['low']}"
                         frameborder="0" allow="autoplay; encrypted-media"></iframe>
                     """, height=400)
+
         else:
             st.error("No face detected. Please try again in better lighting!")
