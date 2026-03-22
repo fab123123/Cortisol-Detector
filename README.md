@@ -16,7 +16,7 @@ This project implements an interface that prompts a camera in order to take a pi
 * Model saving and fine-tuning support
 
 * Front end implementation with Streamlit
-* Chatbot inquiry with Uagents
+* Chatbot inquiry with uAgents
 
 ## Installation
 
@@ -74,4 +74,6 @@ MIT License
 
 ## Authors
 
-Ryan Vo - CS Student | Backend, Machine Learning Enthusiast
+Ryan Vo - ML Back End
+Omar Juarez - Streamlit Front End
+Fabien Duran - uAgent Full Stack
