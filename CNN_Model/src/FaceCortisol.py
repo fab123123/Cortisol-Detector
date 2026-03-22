@@ -1,3 +1,5 @@
+# Class for Cortisol detector
+
 import torch
 from CNN_Model.src import cnn
 from torchvision import transforms

@@ -1,3 +1,5 @@
+# Uses the test dataset to get test accuracy
+
 import torch
 from cnn import CNN48x48
 from torch.utils.data import TensorDataset, DataLoader

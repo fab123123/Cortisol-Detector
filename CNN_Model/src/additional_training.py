@@ -1,3 +1,5 @@
+# Additional file to train a saved model
+
 from cnn import CNN48x48
 from torch.optim.lr_scheduler import StepLR
 import torch

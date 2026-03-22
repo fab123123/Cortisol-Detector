@@ -1,3 +1,5 @@
+# Trains the CNN model, returning a saved model
+
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 from cnn import CNN48x48

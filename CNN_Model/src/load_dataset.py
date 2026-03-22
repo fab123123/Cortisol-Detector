@@ -1,3 +1,5 @@
+# This file loads the dataset, given cortisol_dataset exists
+
 import torch
 from torchvision.datasets import ImageFolder
 from torchvision import transforms

@@ -6,7 +6,7 @@ import requests
 from CNN_Model.src.FaceCortisol import FaceCortisol
 from datetime import datetime
 import random
-
+import csv
 
 # ---------------------------------------------------------------------------
 # Music URLs — replace video IDs with your chosen tracks per stress level
@@ -106,14 +106,15 @@ def get_contextual_data(city="Long Beach"):
 def calculate_final_score(image_classification_prob, hour, temp, weather_desc):
     score = image_classification_prob
 
-    if 6 <= hour <= 9:
+    if 6 <= hour <= 9: # good hours lower cortisol
         score -= 0.15
-
-    if hour > 22 or hour < 4:
+    elif hour > 22 or hour < 4: # Late hours raise cortisol
         score += 0.10
 
-    if temp > 35 or weather_desc in ["Thunderstorm", "Rain", "Drizzle", "Snow"]:
+    if temp > 35 or weather_desc in ["Thunderstorm", "Rain", "Drizzle", "Snow"]: # Bad weather raises cortisol
         score += 0.05
+    else:
+        score -= 0.05
 
     return clamp(score, 0.0, 1.0)
 
@@ -211,16 +212,22 @@ else:
                 render_gauge(score_pct)
 
                 # Result + music
+                # Read CSV into a list
+                with open("advice.csv", newline='', encoding='utf-8') as f:
+                    advice_reader = csv.reader(f)
+                    advice_rows = list(advice_reader)
+                random_advice = random.choice(advice_rows)[0]
+
                 if result > 0.7:
                     st.warning(f"High Cortisol Detected ({score_pct}%)")
-                    st.info("Tip: Try a 2-minute box breathing exercise.")
+                    st.info(random_advice)
                     components.html(f"""
                         <iframe width="300" height="80" src="{MUSIC['high']}"
                         frameborder="0" allow="autoplay; encrypted-media"></iframe>
                     """, height=90)
                 elif result > 0.4:
                     st.info(f"Moderate Cortisol Detected ({score_pct}%)")
-                    st.info("Tip: Take a short walk or stretch break.")
+                    st.info(random_advice)
                     components.html(f"""
                         <iframe width="300" height="80" src="{MUSIC['medium']}"
                         frameborder="0" allow="autoplay; encrypted-media"></iframe>

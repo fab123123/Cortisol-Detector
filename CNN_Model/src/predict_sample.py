@@ -1,3 +1,5 @@
+# Predicts using a random image from the dataset
+
 import os
 import random
 from PIL import Image
