@@ -122,6 +122,13 @@ def calculate_final_score(image_classification_prob, hour, temp, weather_desc):
 def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+def load_image(path):
+    img = cv2.imread(path)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    st.image(img)
 
 # ---------------------------------------------------------------------------
 # Welcome screen
@@ -219,24 +226,27 @@ else:
                 random_advice = random.choice(advice_rows)[0]
 
                 if result > 0.7:
+                    load_image("assets/images/high_cortisol.jpg")
                     st.warning(f"High Cortisol Detected ({score_pct}%)")
                     st.info(random_advice)
                     components.html(f"""
-                        <iframe width="300" height="80" src="{MUSIC['high']}"
+                        <iframe width="640" height="360" src="{MUSIC['high']}"
                         frameborder="0" allow="autoplay; encrypted-media"></iframe>
-                    """, height=90)
+                    """, height=800)
                 elif result > 0.4:
+                    load_image("assets/images/medium_cortisol.jpg")
                     st.info(f"Moderate Cortisol Detected ({score_pct}%)")
                     st.info(random_advice)
                     components.html(f"""
-                        <iframe width="300" height="80" src="{MUSIC['medium']}"
+                        <iframe width="640" height="360" src="{MUSIC['medium']}"
                         frameborder="0" allow="autoplay; encrypted-media"></iframe>
-                    """, height=90)
+                    """, height=400)
                 else:
+                    load_image("assets/images/low_cortisol.jpg")
                     st.success(f"Low Levels Detected ({score_pct}%)")
                     components.html(f"""
-                        <iframe width="300" height="80" src="{MUSIC['low']}"
+                        <iframe width="640" height="360" src="{MUSIC['low']}"
                         frameborder="0" allow="autoplay; encrypted-media"></iframe>
-                    """, height=90)
+                    """, height=400)
         else:
             st.error("No face detected. Please try again in better lighting!")
