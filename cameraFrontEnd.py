@@ -20,15 +20,15 @@ def load_model():
 
 
 def get_contextual_data(city="Long Beach"):
-    now = datetime.now()
-    hour = now.hour
-    #
-    API_KEY = st.secrets.get("OWM_API_KEY", "your_free_api_key")
+    now_hour = datetime.now().hour
+    try:
+        API_KEY = st.secrets.get("OWM_API_KEY", "your_free_api_key")
+    except Exception:
+        API_KEY = "your_free_api_key"
     url = (
         f"http://api.openweathermap.org/data/2.5/weather"
         f"?q={city}&appid={API_KEY}&units=metric"
     )
-
     try:
         response = requests.get(url, timeout=5).json()
         temp = response["main"]["temp"]
@@ -38,12 +38,8 @@ def get_contextual_data(city="Long Beach"):
         print(f"[Weather API error] {e}")
         temp, description = 20, "Clear"
         using_fallback = True
-    #
-    description = "Clear"
-    temp = 20
-    using_fallback = True
-    return hour, temp, description, using_fallback
-    #
+
+    return now_hour, temp, description, using_fallback
 
 def calculate_final_score(image_classification_prob, hour, temp, weather_desc):
     score = image_classification_prob
