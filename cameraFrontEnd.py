@@ -2,7 +2,9 @@ import streamlit as st
 import cv2
 import numpy as np
 import requests
+from CNN_Model.src.FaceCortisol import FaceCortisol
 from datetime import datetime
+import random
 
 # ---------------------------------------------------------------------------
 # Model import — swap this one line when your teammate's file is ready:
@@ -20,7 +22,7 @@ def load_model():
 def get_contextual_data(city="Long Beach"):
     now = datetime.now()
     hour = now.hour
-
+    #
     API_KEY = st.secrets.get("OWM_API_KEY", "your_free_api_key")
     url = (
         f"http://api.openweathermap.org/data/2.5/weather"
@@ -36,9 +38,12 @@ def get_contextual_data(city="Long Beach"):
         print(f"[Weather API error] {e}")
         temp, description = 20, "Clear"
         using_fallback = True
-
+    #
+    description = "Clear"
+    temp = 20
+    using_fallback = True
     return hour, temp, description, using_fallback
-
+    #
 
 def calculate_final_score(image_classification_prob, hour, temp, weather_desc):
     score = image_classification_prob
@@ -65,7 +70,7 @@ def clamp(n, minn, maxn):
 st.title("🧠 MindCheck: Cortisol Detector")
 st.write("Position your face in the center of the frame for the most accurate reading.")
 
-model = load_model()
+model = FaceCortisol()
 
 img_file = st.camera_input("Take a health snapshot")
 
@@ -92,6 +97,7 @@ if img_file:
         if st.button("Run Bio-Scan"):
             with st.spinner("Analyzing physiological markers..."):
                 ai_prediction = model.predict(resized_img)
+                ai_prediction = round(random.uniform(0,0.15),2) if ai_prediction=="low" else round(random.uniform(.7, 1))
                 hour, temp, desc, using_fallback = get_contextual_data()
 
                 if using_fallback:
