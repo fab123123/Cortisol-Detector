@@ -195,12 +195,6 @@ else:
             if st.button("Run Bio-Scan"):
                 with st.spinner("Analyzing physiological markers..."):
                     ai_prediction = model.predict(resized_img)
-                    ai_prediction = (
-                        round(random.uniform(0, 0.15), 2)
-                        if ai_prediction == "low"
-                        else round(random.uniform(0.7, 1.0), 2)
-                    )
-
                     hour, temp, desc, using_fallback = get_contextual_data()
 
                     if using_fallback:
