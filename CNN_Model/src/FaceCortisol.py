@@ -2,6 +2,7 @@ import torch
 from CNN_Model.src import cnn
 from torchvision import transforms
 from PIL import Image
+import cv2
 
 MODEL_PATH = "CNN_Model/saved_models/cnn48x48.pth"
 
@@ -22,6 +23,7 @@ class FaceCortisol:
         ])
 
     def predict(self, img) -> str:
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
         img = Image.fromarray(img, 'RGB')
         img = self._test_transform(img).unsqueeze(0).to(self._device)
         with torch.no_grad():

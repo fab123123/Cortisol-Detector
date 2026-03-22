@@ -2,8 +2,9 @@ import streamlit as st
 import cv2
 import numpy as np
 import requests
+from CNN_Model.src.FaceCortisol import FaceCortisol
 from datetime import datetime
-import streamlit.components.v1 as components
+import random
 
 # ---------------------------------------------------------------------------
 # Model import — swap this one line when your teammate's file is ready:
@@ -19,15 +20,15 @@ def load_model():
 
 
 def get_contextual_data(city="Long Beach"):
-    now = datetime.now()
-    hour = now.hour
-
-    API_KEY = st.secrets.get("OWM_API_KEY", "your_free_api_key")
+    now_hour = datetime.now().hour
+    try:
+        API_KEY = st.secrets.get("OWM_API_KEY", "your_free_api_key")
+    except Exception:
+        API_KEY = "your_free_api_key"
     url = (
         f"http://api.openweathermap.org/data/2.5/weather"
         f"?q={city}&appid={API_KEY}&units=metric"
     )
-
     try:
         response = requests.get(url, timeout=5).json()
         temp = response["main"]["temp"]
@@ -38,8 +39,7 @@ def get_contextual_data(city="Long Beach"):
         temp, description = 20, "Clear"
         using_fallback = True
 
-    return hour, temp, description, using_fallback
-
+    return now_hour, temp, description, using_fallback
 
 def calculate_final_score(image_classification_prob, hour, temp, weather_desc):
     score = image_classification_prob
@@ -59,134 +59,54 @@ def calculate_final_score(image_classification_prob, hour, temp, weather_desc):
 def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
 
-def render_gauge(score_pct: int):
-    arc_len = 346
-    offset = arc_len * (1 - score_pct / 100)
-    angle = -90 + (score_pct / 100 * 180)
 
-    if score_pct > 70:
-        status_text = "high — try box breathing"
-        status_color = "#E24B4A"
-    elif score_pct > 40:
-        status_text = "moderate"
-        status_color = "#EF9F27"
-    else:
-        status_text = "low"
-        status_color = "#1D9E75"
-
-    components.html(f"""
-    <div style="display:flex;flex-direction:column;align-items:center;padding:1rem 0;">
-      <svg viewBox="0 0 260 150" width="260" height="150" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#1D9E75"/>
-            <stop offset="50%" stop-color="#EF9F27"/>
-            <stop offset="100%" stop-color="#E24B4A"/>
-          </linearGradient>
-        </defs>
-        <path d="M 20 130 A 110 110 0 0 1 240 130" fill="none" stroke="#e0e0e0" stroke-width="18" stroke-linecap="round"/>
-        <path d="M 20 130 A 110 110 0 0 1 240 130" fill="none" stroke="url(#arcGrad)"
-              stroke-width="18" stroke-linecap="round"
-              stroke-dasharray="{arc_len}" stroke-dashoffset="{offset:.1f}"/>
-        <line x1="130" y1="130" x2="130" y2="38"
-              stroke="#333" stroke-width="2.5" stroke-linecap="round"
-              transform="rotate({angle:.1f} 130 130)"/>
-        <circle cx="130" cy="130" r="6" fill="#333"/>
-        <text x="18"  y="148" font-size="11" fill="#888">0</text>
-        <text x="118" y="22"  font-size="11" fill="#888">50</text>
-        <text x="234" y="148" font-size="11" fill="#888">100</text>
-      </svg>
-      <div style="font-size:36px;font-weight:500;margin-top:0.5rem;">{score_pct}%</div>
-      <div style="font-size:14px;font-weight:500;color:{status_color};margin-top:0.25rem;">{status_text}</div>
-    </div>
-    """, height=220)
-
-if "started" not in st.session_state:
-    st.session_state["started"] = False
-
-if not st.session_state["started"]:
-    # --- Welcome Screen ---
-    st.title("🧠 MindCheck: Cortisol Detector")
-    st.subheader("Your AI-powered stress level analyzer")
-    st.write("""
-        MindCheck uses your facial expression and environmental data 
-        to estimate your current cortisol (stress) levels.
-    """)
-
-    st.info("""
-        **How it works:**
-        1. Allow camera access when prompted
-        2. Position your face in the center of the frame
-        3. Take a snapshot and run the Bio-Scan
-        4. Get your personalized stress report
-    """)
-
-    st.warning("📷 Camera access is required. No images are stored or sent to any server.")
-
-    if st.button("Get Started →"):
-        st.session_state["started"] = True
-        st.rerun()
-
-else:
 # ---------------------------------------------------------------------------
 # UI
 # ---------------------------------------------------------------------------
-    st.title("🧠 MindCheck: Cortisol Detector")
-    st.write("Position your face in the center of the frame for the most accurate reading.")
+st.title("🧠 MindCheck: Cortisol Detector")
+st.write("Position your face in the center of the frame for the most accurate reading.")
 
-    model = load_model()
+model = FaceCortisol()
 
-    img_file = st.camera_input("Take a health snapshot")
+img_file = st.camera_input("Take a health snapshot")
 
-    if img_file:
-        bytes_data = img_file.getvalue()
-        cv2_img = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
+if img_file:
+    bytes_data = img_file.getvalue()
+    cv2_img = cv2.imdecode(np.frombuffer(bytes_data, np.uint8), cv2.IMREAD_COLOR)
 
-        face_cascade = cv2.CascadeClassifier(
-            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-        )
-        gray = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2GRAY)
-        faces = face_cascade.detectMultiScale(gray, 1.1, 4)
+    face_cascade = cv2.CascadeClassifier(
+        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    )
+    gray = cv2.cvtColor(cv2_img, cv2.COLOR_BGR2GRAY)
+    faces = face_cascade.detectMultiScale(gray, 1.1, 4)
 
-        if len(faces) > 0:
-            (x, y, w, h) = faces[0]
-            face_roi = gray[y : y + h, x : x + w]
-            resized_img = cv2.resize(face_roi, (48, 48), interpolation=cv2.INTER_AREA)
+    if len(faces) > 0:
+        (x, y, w, h) = faces[0]
+        face_roi = gray[y : y + h, x : x + w]
+        resized_img = cv2.resize(face_roi, (48, 48), interpolation=cv2.INTER_AREA)
 
-            with st.expander("Debug view"):
-                st.image(resized_img, caption="Processed image (48x48)", width=150)
+        with st.expander("Debug view"):
+            st.image(resized_img, caption="Processed image (48x48)", width=150)
 
-            st.success("Face detected and processed!")
+        st.success("Face detected and processed!")
 
-            if st.button("Run Bio-Scan"):
-                with st.spinner("Analyzing physiological markers..."):
-                    ai_prediction = model.predict(resized_img)
-                    hour, temp, desc, using_fallback = get_contextual_data()
+        if st.button("Run Bio-Scan"):
+            with st.spinner("Analyzing physiological markers..."):
+                ai_prediction = model.predict(resized_img)
+                ai_prediction = round(random.uniform(0,0.15),2) if ai_prediction=="low" else round(random.uniform(.7, 1))
+                hour, temp, desc, using_fallback = get_contextual_data()
 
-                    if using_fallback:
-                        st.caption("⚠️ Using fallback weather data (API unavailable).")
+                if using_fallback:
+                    st.caption("⚠️ Using fallback weather data (API unavailable).")
 
-                    final_val = calculate_final_score(ai_prediction, hour, temp, desc)
-                    st.session_state["last_result"] = final_val
+                final_val = calculate_final_score(ai_prediction, hour, temp, desc)
+                st.session_state["last_result"] = final_val
 
-                result = st.session_state["last_result"]
-                MUSIC = {
-                    "high": "https://www.youtube.com/embed/NOd291dK1Do?autoplay=1",
-                    "medium": "https://www.youtube.com/embed/CLgkjTVyqHo?autoplay=1",
-                    "low": "https://www.youtube.com/embed/NOd291dK1Do?autoplay=1",
-                }
-                score_pct = int(final_val * 100)
-                render_gauge(score_pct)
-
-                if final_val > 0.7:
-                    st.info("Tip: Try a 2-minute box breathing exercise.")
-                    components.html(f'<iframe width="0" height="0" src="{MUSIC["high"]}" allow="autoplay"></iframe>',
-                                    height=90)
-                elif final_val > 0.4:
-                    components.html(f'<iframe width="0" height="0" src="{MUSIC["medium"]}" allow="autoplay"></iframe>',
-                                    height=90)
-                else:
-                    components.html(f'<iframe width="0" height="0" src="{MUSIC["low"]}" allow="autoplay"></iframe>',
-                                    height=90)
-        else:
-            st.error("No face detected. Please try again in better lighting!")
+            result = st.session_state["last_result"]
+            if result > 0.7:
+                st.warning(f"High Cortisol Detected ({int(result * 100)}%)")
+                st.info("Tip: Try a 2-minute box breathing exercise.")
+            else:
+                st.success(f"Normal Levels Detected ({int(result * 100)}%)")
+    else:
+        st.error("No face detected. Please try again in better lighting!")
