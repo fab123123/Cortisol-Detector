@@ -128,12 +128,12 @@ def calculate_final_score(image_classification_prob, hour, temp, weather_desc):
     score = image_classification_prob
 
     if 6 <= hour <= 9: # good hours lower cortisol
-        score -= 0.15
+        score -= 0.05
     elif hour > 22 or hour < 4: # Late hours raise cortisol
-        score += 0.10
+        score += 0.15
 
     if temp > 35 or weather_desc in ["Thunderstorm", "Rain", "Drizzle", "Snow"]: # Bad weather raises cortisol
-        score += 0.05
+        score += 0.10
     else:
         score -= 0.05
 

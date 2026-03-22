@@ -38,12 +38,12 @@ class FaceCortisol:
             _, predicted = torch.max(output, 1)
 
         class_names = ["high", "low"]
-        res = .05 if class_names[predicted.item()] == "low" else .45
+        res = .05 if class_names[predicted.item()] == "low" else .4
 
         with torch.no_grad():
             output = self._reg_model(img)
             score = output.item()
 
-        res += score * .6
+        res += score * 1.2
 
         return res
