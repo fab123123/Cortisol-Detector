@@ -1,2 +1,4 @@
 .streamlit/secrets.toml
 .idea/
+/CNN_Model/cortisol_dataset/
+/CNN_Model/saved_tensors/
