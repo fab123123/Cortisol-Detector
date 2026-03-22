@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import requests
 from datetime import datetime
+import streamlit.components.v1 as components
 
 # ---------------------------------------------------------------------------
 # Model import — swap this one line when your teammate's file is ready:
@@ -101,10 +102,24 @@ if img_file:
                 st.session_state["last_result"] = final_val
 
             result = st.session_state["last_result"]
-            if result > 0.7:
-                st.warning(f"High Cortisol Detected ({int(result * 100)}%)")
+            MUSIC = {
+                "high": "https://www.youtube.com/embed/NOd291dK1Do?autoplay=1",
+                "medium": "https://www.youtube.com/embed/NOd291dK1Do?autoplay=1",
+                "low": "https://www.youtube.com/embed/NOd291dK1Do?autoplay=1",
+            }
+
+            if final_val > 0.7:
+                st.warning(f"High Cortisol Detected ({int(final_val * 100)}%)")
                 st.info("Tip: Try a 2-minute box breathing exercise.")
+                components.html(f'<iframe width="0" height="0" src="{MUSIC["high"]}" allow="autoplay"></iframe>',
+                                height=90)
+            elif final_val > 0.4:
+                st.info(f"Moderate Levels Detected ({int(final_val * 100)}%)")
+                components.html(f'<iframe width="0" height="0" src="{MUSIC["medium"]}" allow="autoplay"></iframe>',
+                                height=90)
             else:
-                st.success(f"Normal Levels Detected ({int(result * 100)}%)")
+                st.success(f"Normal Levels Detected ({int(final_val * 100)}%)")
+                components.html(f'<iframe width="0" height="0" src="{MUSIC["low"]}" allow="autoplay"></iframe>',
+                                height=90)
     else:
         st.error("No face detected. Please try again in better lighting!")
