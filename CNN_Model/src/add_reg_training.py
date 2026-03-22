@@ -1,5 +1,5 @@
 import torch
-from src.cnn import CNN48x48
+from cnn import CNN48x48
 import torch.optim as optim
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader
