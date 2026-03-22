@@ -5,6 +5,7 @@ import requests
 from CNN_Model.src.FaceCortisol import FaceCortisol
 from datetime import datetime
 import random
+import csv
 
 # ---------------------------------------------------------------------------
 # Model import — swap this one line when your teammate's file is ready:
@@ -93,7 +94,7 @@ if img_file:
         if st.button("Run Bio-Scan"):
             with st.spinner("Analyzing physiological markers..."):
                 ai_prediction = model.predict(resized_img)
-                ai_prediction = round(random.uniform(0,0.15),2) if ai_prediction=="low" else round(random.uniform(.7, 1))
+                ai_prediction = round(random.uniform(0,0.3),2) if ai_prediction=="low" else round(random.uniform(.5, 1), 2)
                 hour, temp, desc, using_fallback = get_contextual_data()
 
                 if using_fallback:
@@ -103,9 +104,15 @@ if img_file:
                 st.session_state["last_result"] = final_val
 
             result = st.session_state["last_result"]
+
+            # Read CSV into a list
+            with open("advice.csv", newline='', encoding='utf-8') as f:
+                csv_reader = csv.reader(f)
+                advice_rows = list(csv_reader)
+
             if result > 0.7:
                 st.warning(f"High Cortisol Detected ({int(result * 100)}%)")
-                st.info("Tip: Try a 2-minute box breathing exercise.")
+                st.info(random.choice(advice_rows)[0])
             else:
                 st.success(f"Normal Levels Detected ({int(result * 100)}%)")
     else:
